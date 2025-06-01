@@ -1,0 +1,10 @@
+services:
+  frontend:
+    container_name: "manutencao_comunitaria_frontend"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: manutencao_comunitaria_front:0.0.1
+    ports:
+      - "3000:80"
+    restart: always
