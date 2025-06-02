@@ -13,5 +13,5 @@ services:
 networks:
   mnt_com_network:
     external: true
-  traefik_network:
+  web:
     external: true
