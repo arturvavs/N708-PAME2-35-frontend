@@ -2,7 +2,12 @@
 
 Sistema para reportar e gerenciar problemas urbanos conectando cidadãos e empresas.
 
-## Como Rodar a Aplicação
+## Como Rodar a Aplicação com Docker
+```bash
+docker compose up -d
+```
+
+## Como Rodar a Aplicação sem Docker
 
 ### 1. Instalar Dependências
 ```bash
