@@ -56,30 +56,29 @@ function Dashboard({ user, token, isCompany }) {
   };
   
   const handleAssignTicket = async (ticketId) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/tickets/${ticketId}/assign`, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({})  // ← ADICIONE ESTA LINHA!
-    });
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.error || 'Erro ao assumir ticket');
+    try {
+      const response = await fetch(`${API_BASE_URL}/tickets/${ticketId}/assign`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao assumir ticket');
+      }
+      
+      setSuccessMessage('Ticket assumido com sucesso!');
+      setTimeout(() => setSuccessMessage(''), 3000);
+      fetchTickets(); // Recarregar lista
+    } catch (err) {
+      setError(err.message);
+      setTimeout(() => setError(''), 5000);
     }
-    
-    setSuccessMessage('Ticket assumido com sucesso!');
-    setTimeout(() => setSuccessMessage(''), 3000);
-    fetchTickets();
-  } catch (err) {
-    setError(err.message);
-    setTimeout(() => setError(''), 5000);
-  }
-};
+  };
   
   const handleCompleteTicket = async (ticketId) => {
     try {
