@@ -127,7 +127,7 @@ function TicketForm({ user, token }) {
         </div>
         
         <div className="form-group">
-          <label>Imagem (opcional)</label>
+          <label>Imagem (Obrigatório)</label>
           <div className="file-input-container">
             <label className="file-input-label">
               <input
