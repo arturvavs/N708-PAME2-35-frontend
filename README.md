@@ -28,9 +28,8 @@ npm run preview
 ## Teste Rápido (Modo Demo)
 
 **Contas de teste disponíveis:**
-- **Usuário comum:** usuario@example.com (qualquer senha)
-- **Empresa:** prefeitura@example.com (qualquer senha)
-- **Admin:** admin@example.com (qualquer senha)
+- **Empresa:** prefeitura@example.com (org123)
+- **Admin:** admin@example.com (admin123)
 
 ## Funcionalidades
 
