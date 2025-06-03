@@ -9,6 +9,7 @@ function Dashboard({ user, token, isCompany }) {
   const [error, setError] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [updatingTicket, setUpdatingTicket] = useState(null);
   
   const location = useLocation();
   
@@ -57,12 +58,15 @@ function Dashboard({ user, token, isCompany }) {
   
   const handleAssignTicket = async (ticketId) => {
     try {
+      setUpdatingTicket(ticketId);
+      
       const response = await fetch(`${API_BASE_URL}/tickets/${ticketId}/assign`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({})
       });
       
       const data = await response.json();
@@ -77,31 +81,42 @@ function Dashboard({ user, token, isCompany }) {
     } catch (err) {
       setError(err.message);
       setTimeout(() => setError(''), 5000);
+    } finally {
+      setUpdatingTicket(null);
     }
   };
   
-  const handleCompleteTicket = async (ticketId) => {
+  const handleCloseTicket = async (ticketId) => {
+    if (!confirm('Tem certeza que deseja encerrar este ticket? Esta ação marcará o ticket como resolvido.')) {
+      return;
+    }
+    
     try {
-      const response = await fetch(`${API_BASE_URL}/tickets/${ticketId}/complete`, {
+      setUpdatingTicket(ticketId);
+      
+      const response = await fetch(`${API_BASE_URL}/tickets/${ticketId}/status`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({ status: 'resolvido' })
       });
       
       const data = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.error || 'Erro ao finalizar ticket');
+        throw new Error(data.error || 'Erro ao encerrar ticket');
       }
       
-      setSuccessMessage('Ticket finalizado com sucesso!');
+      setSuccessMessage('Ticket encerrado com sucesso!');
       setTimeout(() => setSuccessMessage(''), 3000);
       fetchTickets(); // Recarregar lista
     } catch (err) {
       setError(err.message);
       setTimeout(() => setError(''), 5000);
+    } finally {
+      setUpdatingTicket(null);
     }
   };
   
@@ -202,18 +217,19 @@ function Dashboard({ user, token, isCompany }) {
                     <button 
                       className="btn btn-small btn-primary"
                       onClick={() => handleAssignTicket(ticket.id)}
+                      disabled={updatingTicket === ticket.id}
                     >
-                      Assumir
+                      {updatingTicket === ticket.id ? 'Assumindo...' : 'Assumir'}
                     </button>
                   )}
                   
-                  {isCompany && ticket.status === 'em andamento' && 
-                   ticket.assigned_company && ticket.assigned_company.id === user.id && (
+                  {isCompany && ticket.status === 'em andamento' && (
                     <button 
                       className="btn btn-small btn-success"
-                      onClick={() => handleCompleteTicket(ticket.id)}
+                      onClick={() => handleCloseTicket(ticket.id)}
+                      disabled={updatingTicket === ticket.id}
                     >
-                      Finalizar
+                      {updatingTicket === ticket.id ? 'Encerrando...' : 'Encerrar'}
                     </button>
                   )}
                 </div>

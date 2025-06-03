@@ -10,6 +10,7 @@ function TicketDetail({ user, token, isCompany }) {
   const [successMessage, setSuccessMessage] = useState('');
   const [feedback, setFeedback] = useState('');
   const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
   
   const { id } = useParams();
   const navigate = useNavigate();
@@ -45,12 +46,15 @@ function TicketDetail({ user, token, isCompany }) {
   
   const handleAssignTicket = async () => {
     try {
+      setUpdatingStatus(true);
+      
       const response = await fetch(`${API_BASE_URL}/tickets/${id}/assign`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({})
       });
       
       const data = await response.json();
@@ -65,31 +69,42 @@ function TicketDetail({ user, token, isCompany }) {
     } catch (err) {
       setError(err.message);
       setTimeout(() => setError(''), 5000);
+    } finally {
+      setUpdatingStatus(false);
     }
   };
   
-  const handleCompleteTicket = async () => {
+  const handleCloseTicket = async () => {
+    if (!confirm('Tem certeza que deseja encerrar este ticket? Esta ação marcará o ticket como resolvido.')) {
+      return;
+    }
+    
     try {
-      const response = await fetch(`${API_BASE_URL}/tickets/${id}/complete`, {
+      setUpdatingStatus(true);
+      
+      const response = await fetch(`${API_BASE_URL}/tickets/${id}/status`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({ status: 'resolvido' })
       });
       
       const data = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.error || 'Erro ao finalizar ticket');
+        throw new Error(data.error || 'Erro ao encerrar ticket');
       }
       
-      setSuccessMessage('Ticket finalizado com sucesso!');
+      setSuccessMessage('Ticket encerrado com sucesso!');
       setTimeout(() => setSuccessMessage(''), 3000);
       fetchTicket(); // Recarregar dados
     } catch (err) {
       setError(err.message);
       setTimeout(() => setError(''), 5000);
+    } finally {
+      setUpdatingStatus(false);
     }
   };
   
@@ -168,8 +183,7 @@ function TicketDetail({ user, token, isCompany }) {
   
   // Verificar permissões
   const canAssign = isCompany && ticket?.status === 'aberto';
-  const canComplete = isCompany && ticket?.status === 'em andamento' && 
-                     ticket?.assigned_company?.id === user?.id;
+  const canClose = isCompany && ticket?.status === 'em andamento';
   const canAddFeedback = !isCompany && ticket?.status === 'resolvido' && 
                         ticket?.user_id === user?.id;
   const isAuthor = ticket?.user_id === user?.id;
@@ -202,17 +216,19 @@ function TicketDetail({ user, token, isCompany }) {
                 <button 
                   className="btn btn-primary" 
                   onClick={handleAssignTicket}
+                  disabled={updatingStatus}
                 >
-                  Assumir Ticket
+                  {updatingStatus ? 'Assumindo...' : 'Assumir Ticket'}
                 </button>
               )}
               
-              {canComplete && (
+              {canClose && (
                 <button 
                   className="btn btn-success" 
-                  onClick={handleCompleteTicket}
+                  onClick={handleCloseTicket}
+                  disabled={updatingStatus}
                 >
-                  Finalizar Ticket
+                  {updatingStatus ? 'Encerrando...' : 'Encerrar Ticket'}
                 </button>
               )}
             </div>
