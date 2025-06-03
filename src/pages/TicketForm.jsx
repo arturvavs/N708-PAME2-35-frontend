@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './TicketForm.css';
 import { API_BASE_URL } from '../services/api';
+import './TicketForm.css';
 
 function TicketForm({ user, token }) {
   const [title, setTitle] = useState('');
@@ -38,42 +38,35 @@ function TicketForm({ user, token }) {
       return;
     }
     
+    if (!image) {
+      setError('Por favor, anexe uma imagem do problema');
+      return;
+    }
+    
     try {
       setError('');
       setLoading(true);
-      
-      console.log('Enviando dados:', { title, description, address, image: image?.name });
       
       const formData = new FormData();
       formData.append('title', title);
       formData.append('description', description);
       formData.append('address', address);
-      
-      if (image) {
-        formData.append('image', image);
-      }
-      
-      console.log('FormData criado, fazendo requisição...');
+      formData.append('image', image);
       
       const response = await fetch(`${API_BASE_URL}/tickets`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
-          // Não adicionar Content-Type para FormData - o browser define automaticamente
         },
         body: formData
       });
       
-      console.log('Response status:', response.status);
-      
       const data = await response.json();
-      console.log('Response data:', data);
       
       if (!response.ok) {
         throw new Error(data.error || 'Erro ao criar ticket');
       }
       
-      // Redirecionar para dashboard com mensagem de sucesso
       navigate('/dashboard?message=Ticket criado com sucesso!');
     } catch (err) {
       console.error('Erro na criação do ticket:', err);
@@ -82,6 +75,9 @@ function TicketForm({ user, token }) {
       setLoading(false);
     }
   };
+
+  // Verificar se todos os campos obrigatórios estão preenchidos
+  const isFormValid = title && description && address && image;
 
   return (
     <div className="form-container">
@@ -127,7 +123,11 @@ function TicketForm({ user, token }) {
         </div>
         
         <div className="form-group">
-          <label>Imagem (Obrigatório)</label>
+          <label>Imagem do Problema *</label>
+          <p className="image-requirement-note">
+            É obrigatório anexar uma foto do problema para que as empresas possam avaliar adequadamente.
+          </p>
+          
           <div className="file-input-container">
             <label className="file-input-label">
               <input
@@ -137,7 +137,7 @@ function TicketForm({ user, token }) {
               />
               Selecionar Imagem
             </label>
-            {fileName && <span className="file-name">{fileName}</span>}
+            {fileName && <span className="file-name">✓ {fileName}</span>}
           </div>
           
           {imagePreview && (
@@ -158,8 +158,9 @@ function TicketForm({ user, token }) {
           </button>
           <button 
             type="submit" 
-            className="btn btn-primary" 
-            disabled={loading}
+            className={`btn btn-primary ${!isFormValid ? 'btn-disabled' : ''}`}
+            disabled={loading || !isFormValid}
+            title={!isFormValid ? 'Preencha todos os campos e anexe uma imagem' : ''}
           >
             {loading ? 'Criando...' : 'Criar Ticket'}
           </button>
@@ -167,7 +168,7 @@ function TicketForm({ user, token }) {
       </form>
       
       <div className="info-note">
-        <p><strong>Dica:</strong> Forneça o máximo de detalhes possível sobre o problema para que as empresas possam avaliar melhor o trabalho necessário.</p>
+        <p><strong>Dica:</strong> A imagem é fundamental para que as empresas possam avaliar o problema e fornecer um serviço adequado.</p>
       </div>
     </div>
   );
